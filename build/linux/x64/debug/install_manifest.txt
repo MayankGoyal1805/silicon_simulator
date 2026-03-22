@@ -1,0 +1,13 @@
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/silicon_simulator
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/icudtl.dat
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/lib/libflutter_linux_gtk.so
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/kernel_blob.bin
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/fonts/MaterialIcons-Regular.otf
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/shaders/stretch_effect.frag
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/shaders/ink_sparkle.frag
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/NativeAssetsManifest.json
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/AssetManifest.bin
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/FontManifest.json
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/NOTICES.Z
+/home/mayank/repos/silicon_simulator/build/linux/x64/debug/bundle/data/flutter_assets/version.json
