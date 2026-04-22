@@ -51,6 +51,39 @@ Likely questions:
 - Why not build the UI first and fill the backend later?
 - What exactly is being simulated right now?
 
+### Expanded Speaking Notes
+
+When presenting this slide, make it clear that the project is not just a compiler demo, not just a UI, and not just a classroom toy. It is a simulator whose purpose is to expose processor behavior in a form that is understandable and testable.
+
+The strongest way to speak about this slide is:
+
+- first define the project in one sentence
+- then define what Phase 1 means
+- then define why backend-first matters
+
+You can say:
+
+`Silicon Simulator is a RISC-V CPU simulator built for CSA. The important idea is that it does not only run assembly, it exposes internal machine behavior like PC movement, register updates, memory writes, and instruction execution flow. In Phase 1, the goal is to make that backend correct and observable before making the UI more sophisticated.`
+
+You should also mention that the current implemented work is already enough to demonstrate a full path:
+
+- assembly input
+- machine setup
+- loading
+- execution
+- state inspection
+
+### Model Answers
+
+**Why did you start with backend first?**  
+Because the backend defines the truth of the simulator. If register updates, memory behavior, or decoding are wrong, then the UI cannot fix that. For a CSA project, the architecture model must be correct before the presentation layer becomes important.
+
+**Why not build the UI first and fill the backend later?**  
+That would be risky because the UI would either depend on unfinished backend contracts or start owning CPU behavior itself. I wanted the UI to consume a stable simulator runtime, not invent execution logic in widgets.
+
+**What exactly is being simulated right now?**  
+Right now the simulator models a Phase 1 `RV64I` machine: program counter, 32 integer registers, byte-addressable memory, instruction fetch/decode/execute, structured errors, and a workbench UI that drives this backend.
+
 ---
 
 # 2. Motivation
@@ -89,6 +122,33 @@ Likely questions:
 - Which limitations of older simulators matter most for a CSA project?
 - Is this project mainly educational or mainly practical?
 - What makes your simulator “better” in a technical sense?
+
+### Expanded Speaking Notes
+
+The key thing on this slide is to avoid sounding like the project exists only because older tools look old. The stronger claim is that this project tries to improve the architectural clarity of the simulator itself.
+
+You can explain that a simulator is most useful when:
+
+- it makes machine state visible
+- it separates CPU logic from presentation logic
+- it is testable enough that the results can be trusted
+
+That is especially important in CSA, because the project is supposed to model how a machine behaves internally, not only to produce the right final program answer.
+
+You can say:
+
+`The motivation is not only modern UI. The bigger motivation is to make the architecture of the simulator itself cleaner, so that registers, memory, decoding, execution, and errors are all modeled explicitly and can be tested independently.`
+
+### Model Answers
+
+**Which limitations of older simulators matter most for a CSA project?**  
+The most important ones are weak observability of internal state, weak separation between UI and CPU logic, and difficulty testing the simulator itself. Those directly affect how well the project teaches architecture.
+
+**Is this project mainly educational or mainly practical?**  
+Its immediate purpose is educational and architectural, but it is implemented as a practical software system. So it is educational in goal, but engineered as a real application.
+
+**What makes your simulator “better” in a technical sense?**  
+The backend/UI separation, explicit machine-state modeling, dedicated memory subsystem, structured execution results, project persistence, and layered testing make it technically stronger than a UI-only or monolithic simulator design.
 
 ---
 
@@ -129,6 +189,34 @@ Likely questions:
 - Why are snapshots needed if the runtime already has state?
 - Why is determinism so important here?
 - Why not just keep all CPU logic directly inside the UI state?
+
+### Expanded Speaking Notes
+
+This slide should be presented as the architectural philosophy of the whole project. You can treat it almost like requirements for the software architecture.
+
+Each bullet should be connected to a concrete implementation idea:
+
+- explicit machine state became `MachineState`
+- explicit memory became `Memory`
+- stage separation became fetch/decode/execute logic
+- deterministic behavior became repeatable step/run behavior
+- read-only inspection became snapshots
+- testing became multiple test layers
+
+You can say:
+
+`These are not just general software goals. Each one is directly tied to a CPU-simulation requirement. For example, explicit state is needed because architecture is really about state transitions; determinism is needed because simulators must be reproducible; and fetch/decode/execute separation is needed because those stages have different architectural meanings.`
+
+### Model Answers
+
+**Why are snapshots needed if the runtime already has state?**  
+Because the runtime state needs controlled mutation, while the UI and tests need safe observation. Snapshots let the UI inspect state without directly mutating the machine internals.
+
+**Why is determinism so important here?**  
+Because if the same program and configuration can produce different results, then neither testing nor teaching is reliable. Deterministic behavior is essential for debugging and for architectural trust.
+
+**Why not just keep all CPU logic directly inside the UI state?**  
+Because that would tightly couple simulator behavior to one interface. It would be harder to test, harder to extend, and architecturally weaker. CPU logic should exist independently of any UI.
 
 ---
 
@@ -176,6 +264,34 @@ Likely questions:
 - What exactly is inside the project model?
 - Why is validation a separate stage?
 - Why do tests consume snapshots instead of directly poking internal fields?
+
+### Expanded Speaking Notes
+
+This slide is the system-flow explanation. The best way to speak through it is sequentially:
+
+1. input enters as assembly text or a project file  
+2. the input becomes a structured project object  
+3. validation checks legality  
+4. loader creates initialized runtime state  
+5. execution mutates state  
+6. snapshots expose state safely
+
+You should also say that this sequence reflects good architectural layering. Each stage exists so the next stage can make stronger assumptions.
+
+You can say:
+
+`The high-level architecture is intentionally staged. A raw text input is too weak to execute directly, so it first becomes a project model. The project model is validated. Then the loader constructs the actual runtime state. After that, execution can proceed. Finally, snapshots expose the result to tests and UI.`
+
+### Model Answers
+
+**What exactly is inside the project model?**  
+The project model includes ISA target, memory size, load address, entry point, assembly source, optional register overrides, and optional memory initialization blocks.
+
+**Why is validation a separate stage?**  
+Because invalid setup should be detected before runtime execution begins. That keeps loader and execution code simpler and more reliable.
+
+**Why do tests consume snapshots instead of directly poking internal fields?**  
+Because snapshots represent the observable contract of the backend. They let tests verify behavior without depending too much on internal implementation details.
 
 ---
 
@@ -235,6 +351,33 @@ Likely questions:
 - Why `RV64I` instead of `RV32I`?
 - Why not include extensions like `M` or `C` now?
 - Why choose a real ISA instead of inventing a simpler custom teaching ISA?
+
+### Expanded Speaking Notes
+
+This slide should make the ISA choice sound intentional and disciplined.
+
+You should explain:
+
+- RISC-V gives the project an open and standard architectural base
+- `RV64I` is large enough to be serious
+- the base integer set is still small enough for a first milestone
+
+You should also point out that using a real ISA gives stronger documentation grounding and makes the simulator more useful beyond a classroom-only toy environment.
+
+You can say:
+
+`The project intentionally takes a real-ISA route rather than a toy-ISA route. `RV64I` gives enough realism to make the simulator meaningful, while still keeping Phase 1 bounded enough to verify carefully.`
+
+### Model Answers
+
+**Why `RV64I` instead of `RV32I`?**  
+`RV64I` gives the project a more modern 64-bit architecture target and supports a stronger long-term direction, while still remaining manageable as a base ISA.
+
+**Why not include extensions like `M` or `C` now?**  
+Because the first milestone needed to stay bounded. It is better to implement and test the base ISA correctly first, then extend it in later phases.
+
+**Why choose a real ISA instead of a custom teaching ISA?**  
+Because a real ISA makes the project technically stronger, easier to ground in official references, and more useful for actual architecture experimentation later.
 
 ---
 
@@ -302,6 +445,36 @@ Likely questions:
 - Why is memory not just part of machine state?
 - Why is error handling treated as its own module concern?
 
+### Expanded Speaking Notes
+
+This slide is your software-architecture breakdown. It is one of the strongest answers to “where is the architecture in this project?”
+
+The main point is that the project is decomposed by architectural responsibility, not by convenience:
+
+- config defines the simulation
+- loader initializes the simulation
+- state stores the CPU-visible machine
+- memory stores byte-addressable data
+- decode interprets bits
+- execute applies semantics
+- errors explain faults
+- tests verify each layer
+
+You can say:
+
+`This module structure mirrors CPU-simulator concerns directly. It avoids a monolithic program where one class tries to do parsing, state, memory, execution, UI, and error handling all at once.`
+
+### Model Answers
+
+**Why is loader separate from config?**  
+Config describes the simulation declaratively. Loader turns that description into real runtime objects. Those are different responsibilities and should remain separate.
+
+**Why is memory not just part of machine state?**  
+Because memory has its own behaviors such as alignment checks, byte-width access, and little-endian helpers. Treating it as a subsystem makes those rules clearer.
+
+**Why is error handling treated as its own module concern?**  
+Because failures occur across validation, memory, decoding, and execution. A structured shared error model gives consistency across all those layers.
+
 ---
 
 # 7. Simulation Project Model
@@ -365,6 +538,31 @@ Likely questions:
 - Why does the simulator need load address and entry point both?
 - Why is a file-based workflow useful for a CSA simulator?
 
+### Expanded Speaking Notes
+
+This slide is where you explain that a simulation session is more than just source code. To reproduce a CPU experiment, you need:
+
+- the program
+- machine size
+- start address
+- execution entry point
+- optional initial state
+
+That is why the project model exists and why the file-based workflow matters.
+
+Now that project open/save is implemented, you can say that this is not just a design idea. The current workbench already uses the same project model to save and reopen simulations.
+
+### Model Answers
+
+**Why is assembly text stored in the project instead of separately?**  
+Because the program text is part of the simulation definition. Keeping it in the project object allows one file to describe the whole experiment.
+
+**Why does the simulator need load address and entry point both?**  
+Because where a program is stored in memory and where execution begins are related but not identical concepts. Modeling both explicitly is architecturally cleaner.
+
+**Why is a file-based workflow useful for a CSA simulator?**  
+Because it supports reproducibility, sharing, and repeated demonstrations. A saved project preserves both code and machine setup.
+
 ---
 
 # 8. CPU State Model
@@ -421,6 +619,31 @@ Likely questions:
 - Why do writes to `x0` need explicit protection?
 - Is memory part of CPU state or separate?
 
+### Expanded Speaking Notes
+
+This is the slide where you define the CPU model itself. Explain that the simulator tracks the state that matters from the instruction-set point of view:
+
+- program counter
+- general-purpose registers
+- status
+
+You should emphasize `x0` because it shows that the simulator is not only storing values; it is enforcing ISA rules.
+
+You can say:
+
+`The machine state is not an arbitrary software object. It is designed to match the programmer-visible architecture of RV64I. That is why the register file and program counter are central, and that is why invariants like the zero register are enforced directly in the state layer.`
+
+### Model Answers
+
+**What is the difference between architectural state and internal runtime state?**  
+Architectural state is the machine state that defines program execution from the ISA point of view, like registers and `pc`. Internal runtime state is software structure used to manage execution. The project keeps those related but still distinguishes observation via snapshots from mutation during execution.
+
+**Why do writes to `x0` need explicit protection?**  
+Because `x0` must always remain zero in RISC-V. If the simulator lets it change, then instruction behavior becomes architecturally wrong.
+
+**Is memory part of CPU state or separate?**  
+Memory is part of the overall machine behavior, but in the implementation it is modeled as a separate subsystem because it has its own rules and helpers.
+
 ---
 
 # 9. Memory Model
@@ -471,6 +694,34 @@ Likely questions:
 - Why little-endian?
 - Why flat memory instead of segmented or virtual memory?
 - Why is memory size configurable?
+
+### Expanded Speaking Notes
+
+This slide should make clear that memory is not a background implementation detail. It is one of the core architectural subsystems of the simulator.
+
+The simple flat model is a deliberate Phase 1 choice. It lets the simulator correctly support:
+
+- instruction fetch
+- loads and stores
+- stack-like usage
+- explicit memory inspection
+
+without yet taking on the complexity of virtual memory or privilege-based translation.
+
+You can say:
+
+`The memory model is intentionally minimal but still architecturally meaningful. It is byte-addressable, little-endian, bounds-checked, and visible through the simulator interface.`
+
+### Model Answers
+
+**Why little-endian?**  
+Because that matches standard RISC-V system behavior and makes the simulator align with common real-world usage.
+
+**Why flat memory instead of segmented or virtual memory?**  
+Because flat memory is sufficient for the first correctness-focused milestone. More advanced memory models are future extensions after the base execution semantics are stable.
+
+**Why is memory size configurable?**  
+Because machine setup is part of the simulation definition. Different experiments may require different memory sizes, and the simulator supports that through the project model.
 
 ---
 
@@ -524,6 +775,35 @@ Likely questions:
 - Why not implement pipelining directly?
 - Does single-cycle mean unrealistic?
 - What exactly is committed at the end of each step?
+
+### Expanded Speaking Notes
+
+The important point here is that “single-cycle” is being used as an architectural abstraction, not as a claim about the exact timing of real hardware.
+
+Each step produces a complete before/after transition:
+
+- instruction fetched
+- instruction decoded
+- semantics applied
+- registers or memory updated
+- next `pc` computed
+
+That makes the model easier to validate and easier to use as a baseline when pipelining is added later.
+
+You can say:
+
+`In this project, single-cycle means one complete architectural transition per instruction. That is the right abstraction for establishing correctness first.`
+
+### Model Answers
+
+**Why not implement pipelining directly?**  
+Because pipelining adds hazards, stalls, forwarding, and control-flow complexity. It is easier and safer to first validate the architectural behavior with a simpler reference model.
+
+**Does single-cycle mean unrealistic?**  
+It is simplified, but it is still architecturally meaningful. It models the correct state transition for each instruction even though it does not model overlapping microarchitectural stages yet.
+
+**What exactly is committed at the end of each step?**  
+The resulting register updates, memory updates, CPU status, and next program counter are all part of the committed next state.
 
 ---
 
@@ -583,6 +863,36 @@ Likely questions:
 - Where is sign extension handled?
 - How would this structure help later if you add pipelines?
 
+### Expanded Speaking Notes
+
+This slide is where you should carefully distinguish stage responsibilities.
+
+Fetch:
+- uses `pc`
+- reads the instruction word from memory
+
+Decode:
+- interprets opcode and fields
+- constructs a structured instruction representation
+
+Execute:
+- reads source values
+- applies instruction semantics
+- computes next state
+
+That separation is helpful both conceptually and in code. It is easier to reason about, easier to test, and closer to how CPU stages are taught in architecture.
+
+### Model Answers
+
+**Why does decode produce an instruction object instead of executing directly?**  
+Because decode and execution answer different questions. Decode answers what the instruction is. Execute answers what the instruction does. Separating them improves clarity and testing.
+
+**Where is sign extension handled?**  
+It is handled where it logically belongs: immediate interpretation in decode, and width-aware value interpretation in execution and memory helpers.
+
+**How would this structure help later if you add pipelines?**  
+Because pipelines are defined around stage boundaries. If fetch, decode, and execute are already separated, then introducing pipeline stages becomes much cleaner.
+
 ---
 
 # 12. Error and Trap Handling
@@ -635,6 +945,29 @@ Likely questions:
 - What is the difference between halt and trap?
 - Why is `ecall` treated differently from `ebreak`?
 
+### Expanded Speaking Notes
+
+This slide should be explained as part of simulator correctness, not as a minor software detail.
+
+A simulator that silently ignores errors is hard to trust. That is why this project uses structured simulator errors and explicit trapped states. Those errors are useful in three places:
+
+- automated tests
+- runtime behavior
+- UI display
+
+This is also where you can explain the difference between a deliberate stop and an error stop.
+
+### Model Answers
+
+**What kinds of failures are currently modeled?**  
+The current implementation models invalid project setup, assembly errors, invalid or unsupported instructions, memory access errors, misaligned accesses, and environment-call traps.
+
+**What is the difference between halt and trap?**  
+Halt means execution stopped intentionally, such as through `ebreak` in the current workbench flow. Trap means execution stopped because a fault or unsupported condition occurred.
+
+**Why is `ecall` treated differently from `ebreak`?**  
+Because `ecall` normally expects some surrounding execution environment, such as an operating system or runtime service layer, which Phase 1 does not provide. `ebreak` is currently used as the explicit controlled stop instruction.
+
 ---
 
 # 13. Testing Strategy
@@ -685,6 +1018,32 @@ Likely questions:
 - Why not only test full programs?
 - What is a state-transition test?
 - What kinds of bugs are easiest to catch with decoder tests?
+
+### Expanded Speaking Notes
+
+This is where you show that the project is not only architecturally designed but also rigorously validated.
+
+Explain the logic of the test layers:
+
+- project validation tests catch invalid setup early
+- register and memory tests catch foundational state bugs
+- decoder tests catch bit-interpretation bugs
+- execution tests catch instruction-semantic bugs
+- whole-program tests catch integration bugs
+- widget tests check whether the UI reflects simulator behavior
+
+You can mention that the implementation now has a multi-layer passing test suite, which is important because CPU-simulator bugs are often small and easy to miss visually.
+
+### Model Answers
+
+**Why not only test full programs?**  
+Because full-program failures are harder to localize. Smaller tests tell you whether the problem is in configuration, memory, decode, execution, or integration.
+
+**What is a state-transition test?**  
+It checks that one known initial machine state and one instruction produce one exact expected next state. It is a direct way to verify CPU semantics.
+
+**What kinds of bugs are easiest to catch with decoder tests?**  
+Opcode extraction mistakes, immediate-construction bugs, field-position mistakes, and unsupported-instruction handling mistakes are especially suited to decoder tests.
 
 ---
 
@@ -741,6 +1100,30 @@ Likely questions:
 - Which parts are prototype-level?
 - What remains before you would call Phase 1 completely mature?
 
+### Expanded Speaking Notes
+
+This slide can now be spoken partly as plan and partly as progress.
+
+The key message is:
+
+- the backend architecture exists
+- the UI workbench exists
+- the project persistence path exists
+- the remaining work is mainly refinement and broader instruction coverage
+
+That is a strong position for a project presentation because it shows both planning discipline and implementation progress.
+
+### Model Answers
+
+**Which parts are fully working now?**  
+The current working path includes project modeling, JSON persistence, machine state, memory, loader, runtime facade, implemented RV64I instruction subset, structured execution results, and the Phase 1.5 workbench UI.
+
+**Which parts are prototype-level?**  
+The UI is still a workbench rather than a polished final simulator interface, and the assembler and instruction coverage are narrower than a full RV64I implementation.
+
+**What remains before you would call Phase 1 completely mature?**  
+More exhaustive instruction coverage, stronger diagnostics, more tests for corner cases, and further UI refinement around editing and state inspection.
+
 ---
 
 # 15. Future Scope
@@ -784,6 +1167,27 @@ Likely questions:
 - What extension would you implement first after RV64I?
 - How would you validate a pipelined model against the current engine?
 - Would you ever support custom CPUs later?
+
+### Expanded Speaking Notes
+
+This slide should show that the project has a realistic growth path.
+
+The most important idea is that future work is layered on top of the current architecture, not disconnected from it. The current single-cycle engine remains valuable even after more advanced models are added.
+
+You can say:
+
+`The current backend is not throwaway work. It becomes the reference model for future features such as additional RISC-V extensions and pipelined execution.`
+
+### Model Answers
+
+**What extension would you implement first after RV64I?**  
+The most natural next step would be `M` for multiplication/division or `Zicsr` for control/status behavior, depending on whether the next focus is arithmetic completeness or system-level features.
+
+**How would you validate a pipelined model against the current engine?**  
+By running the same programs on both models and checking that the final architectural state matches. The timing can differ, but the register/memory results should agree.
+
+**Would you ever support custom CPUs later?**  
+Possibly, but it is not the main direction of Phase 1. The project is intentionally RISC-V-first, even though the architecture was kept modular enough to avoid blocking future experimentation entirely.
 
 ---
 
@@ -829,6 +1233,32 @@ Likely questions:
 - What part was most challenging architecturally?
 - If you had more time, what would be the next most important improvement?
 
+### Expanded Speaking Notes
+
+The conclusion should leave the audience with one strong message: this project is not only about running assembly code; it is about exposing CPU architecture through a clean and testable software design.
+
+A good summary structure is:
+
+- real ISA
+- explicit state model
+- modular backend
+- backend/UI separation
+- deterministic execution
+- layered testing
+
+That combination is what makes it a serious CSA project.
+
+### Model Answers
+
+**What is the main technical contribution of this project?**  
+The main contribution is a modular architecture for a RISC-V CPU simulator that explicitly models project configuration, machine state, memory, decoding, execution, runtime control, and UI interaction.
+
+**What part was most challenging architecturally?**  
+Designing the boundary between backend correctness and UI interaction was one of the hardest parts, because the simulator had to stay testable while still supporting a usable workbench interface.
+
+**If you had more time, what would be the next most important improvement?**  
+The next most important improvement would be broader and deeper RV64I instruction support with even stronger state-transition tests, because that increases simulator correctness while preserving the current architecture.
+
 ---
 
 # References
@@ -848,3 +1278,11 @@ The strongest references are the official RISC-V documents because the architect
 Flutter references matter for the UI/backend separation and app-architecture justification, but the most important project correctness source is still the RISC-V ISA documentation.
 
 If someone asks whether the simulator behavior is based on a real standard, the answer is yes: the project is grounded in the official unprivileged RISC-V ISA documentation.
+
+### Model Answers
+
+**Are these official references or secondary sources?**  
+The most important sources here are official references, especially the RISC-V ISA documentation and the Flutter documentation.
+
+**Which reference is most important for correctness?**  
+The official RISC-V unprivileged ISA documentation is the most important correctness reference because it defines the architectural state and instruction semantics the simulator is based on.
